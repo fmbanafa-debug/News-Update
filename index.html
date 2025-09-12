@@ -25,19 +25,6 @@
             right: 1rem;
             z-index: 50;
         }
-        .error-message {
-            color: #ef4444;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-        .char-counter {
-            font-size: 0.875rem;
-            color: #9ca3af;
-            margin-top: 0.25rem;
-        }
-        .tag-checkbox {
-            margin-right: 0.5rem;
-        }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-200">
@@ -78,43 +65,28 @@
         <!-- Add News Form (Initially hidden) -->
         <div id="addFormContainer" class="hidden bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl mb-12">
             <h2 class="text-2xl font-bold mb-4">Add a New Article</h2>
-            <form id="addNewsForm" class="space-y-6" novalidate>
+            <form id="addNewsForm" class="space-y-4">
                 <div>
-                    <label for="newsTitle" class="block text-sm font-medium text-gray-300">Title <span class="text-red-500">*</span></label>
-                    <input type="text" id="newsTitle" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" aria-describedby="newsTitleError" maxlength="100">
-                    <p id="newsTitleError" class="error-message hidden">Title is required and must be 100 characters or less.</p>
-                </div>
-                <div>
-                    <label for="newsUrl" class="block text-sm font-medium text-gray-300">URL <span class="text-red-500">*</span></label>
-                    <input type="url" id="newsUrl" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" aria-describedby="newsUrlError">
-                    <p id="newsUrlError" class="error-message hidden">Please enter a valid URL.</p>
+                    <label for="newsTitle" class="block text-sm font-medium text-gray-300">Title</label>
+                    <input type="text" id="newsTitle" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label for="newsSummary" class="block text-sm font-medium text-gray-300">Summary (Short, max 200 characters) <span class="text-red-500">*</span></label>
-                    <textarea id="newsSummary" rows="2" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" maxlength="200" aria-describedby="newsSummaryError newsSummaryCounter"></textarea>
-                    <p id="newsSummaryError" class="error-message hidden">Summary is required and must be 200 characters or less.</p>
-                    <p id="newsSummaryCounter" class="char-counter">0/200 characters</p>
+                    <label for="newsSummary" class="block text-sm font-medium text-gray-300">Summary (Short)</label>
+                    <textarea id="newsSummary" rows="2" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
                 <div>
-                    <label for="newsFullDescription" class="block text-sm font-medium text-gray-300">Full Description (Extensive, in points) <span class="text-red-500">*</span></label>
-                    <textarea id="newsFullDescription" rows="5" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" aria-describedby="newsFullDescriptionError"></textarea>
-                    <p id="newsFullDescriptionError" class="error-message hidden">Full description is required.</p>
+                    <label for="newsFullDescription" class="block text-sm font-medium text-gray-300">Full Description (Extensive, in points)</label>
+                    <textarea id="newsFullDescription" rows="5" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300">Tags (Select at least one) <span class="text-red-500">*</span></label>
-                    <div id="newsTagsContainer" class="mt-2 grid grid-cols-2 gap-2" aria-describedby="newsTagsError">
-                        <!-- Tags will be populated by JavaScript -->
-                    </div>
-                    <p id="newsTagsError" class="error-message hidden">Please select at least one tag.</p>
+                    <label for="newsTag" class="block text-sm font-medium text-gray-300">Tag</label>
+                    <select id="newsTag" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
                 </div>
-                <div class="flex space-x-4">
-                    <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-                        Add Article
-                    </button>
-                    <button type="button" id="cancelAddFormBtn" class="flex-1 px-6 py-3 bg-gray-600 text-white font-bold rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors">
-                        Cancel
-                    </button>
-                </div>
+                <button type="submit" class="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                    Save Article
+                </button>
             </form>
         </div>
         
@@ -145,456 +117,286 @@
     <script>
         // Use a self-executing anonymous function to avoid polluting the global scope
         (function() {
-            try {
-                // DOM element references
-                const elements = {
-                    newsGrid: document.getElementById('newsGrid'),
-                    showAddFormBtn: document.getElementById('showAddFormBtn'),
-                    addFormContainer: document.getElementById('addFormContainer'),
-                    addNewsForm: document.getElementById('addNewsForm'),
-                    newsTitleInput: document.getElementById('newsTitle'),
-                    newsUrlInput: document.getElementById('newsUrl'),
-                    newsSummaryInput: document.getElementById('newsSummary'),
-                    newsFullDescriptionInput: document.getElementById('newsFullDescription'),
-                    newsTagsContainer: document.getElementById('newsTagsContainer'),
-                    noNewsMessage: document.getElementById('noNewsMessage'),
-                    messageBox: document.getElementById('message-box'),
-                    modal: document.getElementById('modal'),
-                    closeModalBtn: document.getElementById('closeModal'),
-                    modalTitle: document.getElementById('modalTitle'),
-                    modalContent: document.getElementById('modalContent'),
-                    tagFilter: document.getElementById('tagFilter'),
-                    searchInput: document.getElementById('searchInput'),
-                    cancelAddFormBtn: document.getElementById('cancelAddFormBtn')
+            const newsGrid = document.getElementById('newsGrid');
+            const showAddFormBtn = document.getElementById('showAddFormBtn');
+            const addFormContainer = document.getElementById('addFormContainer');
+            const addNewsForm = document.getElementById('addNewsForm');
+            const newsTitleInput = document.getElementById('newsTitle');
+            const newsSummaryInput = document.getElementById('newsSummary');
+            const newsFullDescriptionInput = document.getElementById('newsFullDescription');
+            const noNewsMessage = document.getElementById('noNewsMessage');
+            const messageBox = document.getElementById('message-box');
+            const modal = document.getElementById('modal');
+            const closeModalBtn = document.getElementById('closeModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            const tagFilter = document.getElementById('tagFilter');
+            const newsTagInput = document.getElementById('newsTag');
+            const searchInput = document.getElementById('searchInput');
+
+            const availableTags = ["AI", "Entertainment", "Finance", "Industrial", "Pharma", "Real Estate", "Retail", "Technological Services", "Telecommunications"].sort();
+
+            // Initial news articles to populate the page on first load
+            const initialNews = [
+                {
+                    title: "ADQ sells its 45% stake in Alpha Dhabi",
+                    url: "",
+                    summary: "Abu Dhabi's ADQ, a major investment holding company, has sold its entire 45% stake in Alpha Dhabi Holding to a private investment firm, with the deal's value based on Alpha Dhabi's market cap.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>The Parties:</strong> ADQ, one of Abu Dhabi's largest sovereign wealth funds, sold its stake to a private investment firm.</li>
+                            <li><strong>Transaction Details:</strong> The sale involved ADQ's full 45% shareholding in Alpha Dhabi Holding, an Abu Dhabi-based conglomerate.</li>
+                            <li><strong>Valuation:</strong> The value of the transaction was not publicly disclosed but was determined based on Alpha Dhabi's market capitalization.</li>
+                            <li><strong>Strategic Impact:</strong> This sale allows ADQ to rebalance its portfolio and focus on other strategic investments, while the private firm gains a significant stake in a major player in the region.</li>
+                        </ul>
+                    `,
+                    date: "September 10, 2025",
+                    tag: 'Finance'
+                },
+                {
+                    title: "Abu Dhabi’s Yas Island breaks record with 34,000 visitors at New Year’s Eve celebrations",
+                    url: "",
+                    summary: "Yas Island in Abu Dhabi set a new record for its New Year's Eve celebrations, attracting over 34,000 attendees to the fireworks and drone show event.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Record-Breaking Attendance:</strong> The event drew an unprecedented crowd of more than 34,000 people, marking a new attendance record for the popular destination.</li>
+                            <li><strong>Spectacle:</strong> Attendees enjoyed a spectacular fireworks display and a synchronized drone show, contributing to a vibrant and memorable celebration.</li>
+                            <li><strong>Economic Impact:</strong> The high turnout highlights Yas Island's growing appeal as a major entertainment and tourism hub in the region.</li>
+                        </ul>
+                    `,
+                    date: "September 9, 2025",
+                    tag: 'Entertainment'
+                },
+                {
+                    title: "Al Futtaim Group acquires 25% stake in Chalhoub Group",
+                    url: "",
+                    summary: "The UAE's Al Futtaim Group has purchased a 25% ownership stake in the Dubai-based luxury retail giant, Chalhoub Group, for a sum exceeding $500 million.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Acquisition:</strong> Al Futtaim Group, a diversified conglomerate, has acquired a significant minority stake in the Chalhoub Group.</li>
+                            <li><strong>Valuation:</strong> The deal, which strengthens Al Futtaim's position in the luxury goods market, was valued at over $500 million.</li>
+                            <li><strong>Synergy:</strong> This partnership is expected to create synergies and drive growth for both companies within the luxury and retail sectors.</li>
+                            <li><strong>Market Position:</strong> Chalhoub Group is a well-established leader in luxury retail distribution across the Middle East.</li>
+                        </ul>
+                    `,
+                    date: "September 8, 2025",
+                    tag: 'Retail'
+                },
+                {
+                    title: "Dubai’s largest mall opens a new virtual store in the Metaverse",
+                    url: "",
+                    summary: "Cityland Mall in Dubai is set to launch its own virtual store within the Metaverse, offering a new shopping experience for customers.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Virtual Expansion:</strong> Cityland Mall is entering the digital realm by creating a virtual presence in the Metaverse.</li>
+                            <li><strong>New Experience:</strong> This initiative provides a new way for consumers to shop and interact with the mall's offerings from anywhere in the world.</li>
+                            <li><strong>Technology Integration:</strong> The move showcases the increasing integration of retail with virtual reality and digital platforms.</li>
+                            <li><strong>Strategic Vision:</strong> This step aligns with Dubai's push for digital innovation and establishing itself as a hub for future-forward technologies.</li>
+                        </ul>
+                    `,
+                    date: "September 7, 2025",
+                    tag: 'Technological Services'
+                },
+                {
+                    title: "DEWA announces a record AED 8.7 billion in profit",
+                    url: "",
+                    summary: "The Dubai Electricity and Water Authority (DEWA) has reported a record-breaking profit of AED 8.7 billion for the first nine months of the year, driven by higher demand and operational efficiency.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Financial Performance:</strong> DEWA's profit reached an unprecedented AED 8.7 billion (approximately $2.37 billion) for the first nine months of the financial year.</li>
+                            <li><strong>Key Drivers:</strong> This strong performance is attributed to a surge in electricity and water demand as well as improved operational efficiency across its services.</li>
+                            <li><strong>Market Position:</strong> As a major utility provider in Dubai, this record profit underscores the company's robust financial health and the city's economic growth.</li>
+                        </ul>
+                    `,
+                    date: "September 6, 2025",
+                    tag: 'Finance'
+                },
+                {
+                    title: "Emaar Properties records $1.5 billion in profit for the first nine months of 2023",
+                    url: "",
+                    summary: "Emaar Properties, the developer of the Burj Khalifa, has announced a net profit of $1.5 billion for the first nine months of 2023, reflecting strong sales across its portfolio.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Profit Milestone:</strong> The company reported a substantial net profit of $1.5 billion, a significant indicator of its financial success.</li>
+                            <li><strong>Performance Drivers:</strong> The profit was fueled by robust real estate sales and the company's successful management of its diverse portfolio.</li>
+                            <li><strong>Market Confidence:</strong> Emaar's performance reflects strong investor confidence and a booming real estate market in Dubai.</li>
+                        </ul>
+                    `,
+                    date: "September 5, 2025",
+                    tag: 'Real Estate'
+                },
+                {
+                    title: "ADNOC finalizes partnership deal with Eni and OMV",
+                    url: "",
+                    summary: "ADNOC has completed a strategic partnership agreement with Italian oil giant Eni and Austria's OMV, focusing on the joint development of projects in the energy sector.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Strategic Alliance:</strong> ADNOC, one of the world's largest energy companies, has formalized a new partnership with two leading European energy firms, Eni and OMV.</li>
+                            <li><strong>Collaboration:</strong> The agreement aims to pool resources and expertise to collaborate on upstream, midstream, and downstream projects.</li>
+                            <li><strong>Global Reach:</strong> This deal enhances ADNOC's global footprint and strengthens its position in key international markets.</li>
+                        </ul>
+                    `,
+                    date: "September 4, 2025",
+                    tag: 'Industrial'
+                },
+                {
+                    title: "SIDARA ACQUIRES UK'S WOOD GROUP IN $292 MILLION DEAL",
+                    url: "https://www.instagram.com/smashibusiness/",
+                    summary: "Sidara, the UAE-based engineering firm, has acquired the UK's Wood Group for £216 million ($292 million), with a $450 million capital injection and assumption of $1.6 billion in debt.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>The Acquirer:</strong> Sidara is a prominent UAE-based engineering firm, expanding its global footprint.</li>
+                            <li><strong>The Target:</strong> Wood Group is a UK-based company specializing in engineering and consulting services.</li>
+                            <li><strong>Deal Specifics:</strong> The acquisition is valued at £216 million ($292 million), including a significant capital injection and the assumption of $1.6 billion in debt.</li>
+                            <li><strong>Contingency:</strong> The deal is dependent on Wood Group publishing its delayed financial results by October 31, 2025.</li>
+                            <li><strong>Market Impact:</strong> This move signifies a major consolidation in the global engineering sector and a strategic expansion for Sidara.</li>
+                        </ul>
+                    `,
+                    date: "September 3, 2025",
+                    tag: 'Industrial'
+                }
+            ];
+            
+            // Show a temporary message to the user
+            function showMessage(message, type = 'success') {
+                messageBox.textContent = message;
+                messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500');
+                if (type === 'success') {
+                    messageBox.classList.add('bg-green-500');
+                } else {
+                    messageBox.classList.add('bg-red-500');
+                }
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 3000);
+            }
+
+            // Function to save news to localStorage
+            function saveNews(news) {
+                localStorage.setItem('newsData', JSON.stringify(news));
+            }
+
+            // Function to load news from localStorage
+            function loadNews() {
+                const newsString = localStorage.getItem('newsData');
+                if (newsString) {
+                    return JSON.parse(newsString);
+                } else {
+                    // Save initial news to local storage on first load
+                    saveNews(initialNews);
+                    return initialNews;
+                }
+            }
+
+            // Function to render news articles
+            function renderNews() {
+                const selectedTag = tagFilter.value;
+                const filterText = searchInput.value.toLowerCase();
+                const newsArticles = loadNews();
+                
+                let filteredNews = newsArticles;
+
+                if (selectedTag !== 'All') {
+                    filteredNews = newsArticles.filter(article => article.tag === selectedTag);
+                }
+
+                if (filterText) {
+                    filteredNews = filteredNews.filter(article =>
+                        article.title.toLowerCase().includes(filterText) ||
+                        article.summary.toLowerCase().includes(filterText) ||
+                        (article.fullDescription && article.fullDescription.toLowerCase().includes(filterText))
+                    );
+                }
+                
+                newsGrid.innerHTML = '';
+                if (filteredNews.length === 0) {
+                    noNewsMessage.classList.remove('hidden');
+                } else {
+                    noNewsMessage.classList.add('hidden');
+                    filteredNews.forEach(article => {
+                        const card = document.createElement('div');
+                        card.className = 'news-card bg-gray-800 p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between';
+                        
+                        // Card content
+                        const content = `
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">${article.title}</h3>
+                                <span class="text-xs px-2 py-1 bg-indigo-500 text-white rounded-full font-medium">${article.tag}</span>
+                                <p class="text-sm text-gray-400 my-4">${article.summary}</p>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between">
+                                <button class="read-more-btn text-blue-400 hover:text-blue-300 font-medium transition-colors" data-title="${article.title}" data-full-description="${encodeURIComponent(article.fullDescription || '')}">
+                                    Read more &rarr;
+                                </button>
+                                <span class="text-xs text-gray-500">${article.date}</span>
+                            </div>
+                        `;
+                        card.innerHTML = content;
+                        newsGrid.appendChild(card);
+                    });
+                }
+            }
+
+            // Event listener for adding a new article
+            addNewsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newArticle = {
+                    title: newsTitleInput.value,
+                    url: "", 
+                    summary: newsSummaryInput.value,
+                    fullDescription: newsFullDescriptionInput.value,
+                    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                    tag: newsTagInput.value
                 };
 
-                // Check for missing DOM elements
-                for (const [key, element] of Object.entries(elements)) {
-                    if (!element) {
-                        console.error(`DOM element ${key} not found`);
-                        return;
-                    }
+                const newsArticles = loadNews();
+                newsArticles.unshift(newArticle); // Add to the beginning of the array
+                saveNews(newsArticles);
+                renderNews();
+                addNewsForm.reset();
+                addFormContainer.classList.add('hidden');
+                showMessage('Article added successfully!');
+            });
+
+            // Event listener for showing/hiding the add form
+            showAddFormBtn.addEventListener('click', () => {
+                addFormContainer.classList.toggle('hidden');
+                if (!addFormContainer.classList.contains('hidden')) {
+                    newsTitleInput.focus();
                 }
+            });
 
-                const availableTags = ["AI", "Entertainment", "Finance", "Industrial", "Pharma", "Real Estate", "Retail", "Technological Services", "Telecommunications"].sort();
+            // Event listeners for filter and search
+            tagFilter.addEventListener('change', renderNews);
+            searchInput.addEventListener('input', renderNews);
 
-                // Initial news articles with tags as arrays
-                const initialNews = [
-                    {
-                        title: "SIDARA ACQUIRES UK'S WOOD GROUP IN $292 MILLION DEAL",
-                        url: "https://www.instagram.com/smashibusiness/",
-                        summary: "Sidara, the UAE-based engineering firm, has acquired the UK's Wood Group for £216 million ($292 million), with a $450 million capital injection and assumption of $1.6 billion in debt.",
-                        fullDescription: `
-                            <ul class="list-disc list-inside space-y-2">
-                                <li><strong>The Acquirer:</strong> Sidara is a prominent UAE-based engineering firm, expanding its global footprint.</li>
-                                <li><strong>The Target:</strong> Wood Group is a UK-based company specializing in engineering and consulting services.</li>
-                                <li><strong>Deal Specifics:</strong> The acquisition is valued at £216 million ($292 million), including a significant capital injection and the assumption of $1.6 billion in debt.</li>
-                                <li><strong>Contingency:</strong> The deal is dependent on Wood Group publishing its delayed financial results by October 31, 2025.</li>
-                                <li><strong>Market Impact:</strong> This move signifies a major consolidation in the global engineering sector and a strategic expansion for Sidara.</li>
-                            </ul>
-                        `,
-                        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-                        tags: ['Industrial']
-                    },
-                    {
-                        title: "Tech Giants Announce Major AI Partnership",
-                        url: "https://www.example.com/ai-partnership",
-                        summary: "Two of the world's leading technology companies have entered into a groundbreaking partnership to accelerate the development of artificial intelligence.",
-                        fullDescription: `
-                            <ul class="list-disc list-inside space-y-2">
-                                <li><strong>The Alliance:</strong> Two major tech companies, historically rivals, have joined forces to pool their resources and research in artificial intelligence.</li>
-                                <li><strong>Key Objective:</strong> The partnership's primary goal is to speed up the creation of more ethical and robust AI models.</li>
-                                <li><strong>Benefits:</strong> The collaboration is expected to reduce development time, share costs, and create a unified standard for AI safety and ethics.</li>
-                                <li><strong>Market Reaction:</strong> The announcement has been met with mixed reactions, with some praising the collaboration while others express concerns about market dominance.</li>
-                            </ul>
-                        `,
-                        date: "September 5, 2025",
-                        tags: ['AI', 'Technological Services']
-                    },
-                    {
-                        title: "Global Markets Rally on Positive Economic Outlook",
-                        url: "https://www.example.com/market-rally",
-                        summary: "Stock markets worldwide saw significant gains today following the release of optimistic economic data.",
-                        fullDescription: `
-                            <ul class="list-disc list-inside space-y-2">
-                                <li><strong>Economic Data:</strong> Recent reports show stronger-than-expected job growth and a stable inflation rate, calming fears of an economic downturn.</li>
-                                <li><strong>Market Performance:</strong> All major stock indexes, including the S&P 500, Dow Jones, and NASDAQ, posted solid gains, with technology and consumer goods sectors leading the charge.</li>
-                                <li><strong>Analyst Insight:</strong> Financial analysts believe this data provides a strong signal of economic resilience and may encourage further investment.</li>
-                                <li><strong>Future Outlook:</strong> The positive trend is expected to continue in the short term, though some experts caution about potential headwinds from geopolitical tensions.</li>
-                            </ul>
-                        `,
-                        date: "September 4, 2025",
-                        tags: ['Finance']
-                    }
-                ];
-
-                // Show a temporary message to the user
-                function showMessage(message, type = 'success') {
-                    elements.messageBox.textContent = message;
-                    elements.messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500');
-                    elements.messageBox.classList.add(type === 'success' ? 'bg-green-500' : 'bg-red-500');
-                    setTimeout(() => {
-                        elements.messageBox.classList.add('hidden');
-                    }, 3000);
+            // Event listener for the modal to show article details
+            newsGrid.addEventListener('click', (e) => {
+                if (e.target.classList.contains('read-more-btn')) {
+                    const title = e.target.getAttribute('data-title');
+                    const fullDescription = decodeURIComponent(e.target.getAttribute('data-full-description'));
+                    modalTitle.textContent = title;
+                    modalContent.innerHTML = fullDescription; // Use innerHTML to render points
+                    modal.classList.remove('hidden');
                 }
+            });
 
-                // Function to save news to localStorage
-                function saveNews(news) {
-                    try {
-                        localStorage.setItem('newsData', JSON.stringify(news));
-                    } catch (e) {
-                        console.error('Error saving to localStorage:', e);
-                        showMessage('Failed to save article.', 'error');
-                    }
-                }
+            // Event listener to close the modal
+            closeModalBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
 
-                // Function to load news from localStorage
-                function loadNews() {
-                    try {
-                        const newsString = localStorage.getItem('newsData');
-                        if (newsString) {
-                            const parsedNews = JSON.parse(newsString);
-                            // Ensure all articles have tags as array
-                            return parsedNews.map(article => ({
-                                ...article,
-                                tags: Array.isArray(article.tags) ? article.tags : [article.tag || 'Uncategorized']
-                            }));
-                        } else {
-                            saveNews(initialNews);
-                            return initialNews;
-                        }
-                    } catch (e) {
-                        console.error('Error loading from localStorage:', e);
-                        showMessage('Failed to load articles.', 'error');
-                        return initialNews;
-                    }
-                }
+            // Initial render when the page loads
+            document.addEventListener('DOMContentLoaded', () => {
+                // Populate the tag dropdowns
+                tagFilter.innerHTML = '<option value="All">All</option>' + availableTags.map(tag => `<option value="${tag}">${tag}</option>`).join('');
+                newsTagInput.innerHTML = availableTags.map(tag => `<option value="${tag}">${tag}</option>`).join('');
 
-                // Function to validate URL
-                function isValidUrl(url) {
-                    try {
-                        new URL(url);
-                        return true;
-                    } catch {
-                        return false;
-                    }
-                }
+                renderNews();
+            });
 
-                // Function to validate form inputs
-                function validateForm() {
-                    let isValid = true;
-
-                    // Title validation
-                    const titleError = document.getElementById('newsTitleError');
-                    if (!elements.newsTitleInput.value.trim() || elements.newsTitleInput.value.length > 100) {
-                        titleError.classList.remove('hidden');
-                        elements.newsTitleInput.classList.add('border-red-500');
-                        isValid = false;
-                    } else {
-                        titleError.classList.add('hidden');
-                        elements.newsTitleInput.classList.remove('border-red-500');
-                    }
-
-                    // URL validation
-                    const urlError = document.getElementById('newsUrlError');
-                    if (!isValidUrl(elements.newsUrlInput.value)) {
-                        urlError.classList.remove('hidden');
-                        elements.newsUrlInput.classList.add('border-red-500');
-                        isValid = false;
-                    } else {
-                        urlError.classList.add('hidden');
-                        elements.newsUrlInput.classList.remove('border-red-500');
-                    }
-
-                    // Summary validation
-                    const summaryError = document.getElementById('newsSummaryError');
-                    if (!elements.newsSummaryInput.value.trim() || elements.newsSummaryInput.value.length > 200) {
-                        summaryError.classList.remove('hidden');
-                        elements.newsSummaryInput.classList.add('border-red-500');
-                        isValid = false;
-                    } else {
-                        summaryError.classList.add('hidden');
-                        elements.newsSummaryInput.classList.remove('border-red-500');
-                    }
-
-                    // Full Description validation
-                    const descriptionError = document.getElementById('newsFullDescriptionError');
-                    if (!elements.newsFullDescriptionInput.value.trim()) {
-                        descriptionError.classList.remove('hidden');
-                        elements.newsFullDescriptionInput.classList.add('border-red-500');
-                        isValid = false;
-                    } else {
-                        descriptionError.classList.add('hidden');
-                        elements.newsFullDescriptionInput.classList.remove('border-red-500');
-                    }
-
-                    // Tags validation
-                    const tagsError = document.getElementById('newsTagsError');
-                    const selectedTags = Array.from(elements.newsTagsContainer.querySelectorAll('input[type="checkbox"]:checked'));
-                    if (selectedTags.length === 0) {
-                        tagsError.classList.remove('hidden');
-                        isValid = false;
-                    } else {
-                        tagsError.classList.add('hidden');
-                    }
-
-                    return isValid;
-                }
-
-                // Function to render news articles
-                function renderNews() {
-                    try {
-                        const selectedTag = elements.tagFilter.value;
-                        const filterText = elements.searchInput.value.toLowerCase();
-                        const newsArticles = loadNews();
-                        
-                        let filteredNews = newsArticles;
-
-                        if (selectedTag !== 'All') {
-                            filteredNews = newsArticles.filter(article => article.tags.includes(selectedTag));
-                        }
-
-                        if (filterText) {
-                            filteredNews = filteredNews.filter(article =>
-                                article.title.toLowerCase().includes(filterText) ||
-                                article.summary.toLowerCase().includes(filterText) ||
-                                (article.fullDescription && article.fullDescription.toLowerCase().includes(filterText))
-                            );
-                        }
-                        
-                        elements.newsGrid.innerHTML = '';
-                        if (filteredNews.length === 0) {
-                            elements.noNewsMessage.classList.remove('hidden');
-                        } else {
-                            elements.noNewsMessage.classList.add('hidden');
-                            filteredNews.forEach(article => {
-                                const card = document.createElement('div');
-                                card.className = 'news-card bg-gray-800 p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between';
-                                
-                                // Sanitize content to prevent XSS
-                                const content = `
-                                    <div>
-                                        <h3 class="text-xl font-bold text-white mb-2">${article.title.replace(/</g, '&lt;')}</h3>
-                                        <div class="flex flex-wrap gap-2 mb-4">
-                                            ${article.tags.map(tag => `<span class="text-xs px-2 py-1 bg-indigo-500 text-white rounded-full font-medium">${tag.replace(/</g, '&lt;')}</span>`).join('')}
-                                        </div>
-                                        <p class="text-sm text-gray-400">${article.summary.replace(/</g, '&lt;')}</p>
-                                    </div>
-                                    <div class="mt-4 flex items-center justify-between">
-                                        <button class="read-more-btn text-blue-400 hover:text-blue-300 font-medium transition-colors" data-title="${article.title.replace(/"/g, '&quot;')}" data-full-description="${encodeURIComponent(article.fullDescription || '')}">
-                                            Read more &rarr;
-                                        </button>
-                                        <span class="text-xs text-gray-500">${article.date}</span>
-                                    </div>
-                                `;
-                                card.innerHTML = content;
-                                elements.newsGrid.appendChild(card);
-                            });
-                        }
-                    } catch (e) {
-                        console.error('Error rendering news:', e);
-                        showMessage('Failed to render articles.', 'error');
-                    }
-                }
-
-                // Event listener for adding a new article
-                elements.addNewsForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    try {
-                        if (validateForm()) {
-                            const selectedTags = Array.from(elements.newsTagsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
-                            const newArticle = {
-                                title: elements.newsTitleInput.value.trim(),
-                                url: elements.newsUrlInput.value.trim(),
-                                summary: elements.newsSummaryInput.value.trim(),
-                                fullDescription: `
-                                    <ul class="list-disc list-inside space-y-2">
-                                        ${elements.newsFullDescriptionInput.value.trim().split('\n').map(line => `<li>${line.replace(/</g, '&lt;')}</li>`).join('')}
-                                    </ul>
-                                `,
-                                date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-                                tags: selectedTags
-                            };
-
-                            const newsArticles = loadNews();
-                            newsArticles.unshift(newArticle);
-                            saveNews(newsArticles);
-                            renderNews();
-                            elements.addNewsForm.reset();
-                            elements.addFormContainer.classList.add('hidden');
-                            document.getElementById('newsSummaryCounter').textContent = '0/200 characters';
-                            showMessage('Article added successfully!');
-                        } else {
-                            showMessage('Please fix the errors in the form.', 'error');
-                        }
-                    } catch (e) {
-                        console.error('Error adding article:', e);
-                        showMessage('Failed to add article.', 'error');
-                    }
-                });
-
-                // Event listener for showing/hiding the add form
-                elements.showAddFormBtn.addEventListener('click', () => {
-                    try {
-                        elements.addFormContainer.classList.toggle('hidden');
-                        if (!elements.addFormContainer.classList.contains('hidden')) {
-                            elements.newsTitleInput.focus();
-                        }
-                    } catch (e) {
-                        console.error('Error toggling form:', e);
-                        showMessage('Failed to toggle form.', 'error');
-                    }
-                });
-
-                // Event listener for canceling the form
-                elements.cancelAddFormBtn.addEventListener('click', () => {
-                    try {
-                        elements.addNewsForm.reset();
-                        elements.addFormContainer.classList.add('hidden');
-                        document.getElementById('newsSummaryCounter').textContent = '0/200 characters';
-                        document.querySelectorAll('.error-message').forEach(el => el.classList.add('hidden'));
-                        document.querySelectorAll('input, textarea').forEach(el => el.classList.remove('border-red-500'));
-                    } catch (e) {
-                        console.error('Error canceling form:', e);
-                        showMessage('Failed to cancel form.', 'error');
-                    }
-                });
-
-                // Event listener for summary character counter
-                elements.newsSummaryInput.addEventListener('input', () => {
-                    try {
-                        const count = elements.newsSummaryInput.value.length;
-                        document.getElementById('newsSummaryCounter').textContent = `${count}/200 characters`;
-                        if (count > 200) {
-                            document.getElementById('newsSummaryError').classList.remove('hidden');
-                            elements.newsSummaryInput.classList.add('border-red-500');
-                        } else {
-                            document.getElementById('newsSummaryError').classList.add('hidden');
-                            elements.newsSummaryInput.classList.remove('border-red-500');
-                        }
-                    } catch (e) {
-                        console.error('Error updating summary counter:', e);
-                    }
-                });
-
-                // Real-time validation for title
-                elements.newsTitleInput.addEventListener('input', () => {
-                    try {
-                        const titleError = document.getElementById('newsTitleError');
-                        if (!elements.newsTitleInput.value.trim() || elements.newsTitleInput.value.length > 100) {
-                            titleError.classList.remove('hidden');
-                            elements.newsTitleInput.classList.add('border-red-500');
-                        } else {
-                            titleError.classList.add('hidden');
-                            elements.newsTitleInput.classList.remove('border-red-500');
-                        }
-                    } catch (e) {
-                        console.error('Error validating title:', e);
-                    }
-                });
-
-                // Real-time validation for URL
-                elements.newsUrlInput.addEventListener('input', () => {
-                    try {
-                        const urlError = document.getElementById('newsUrlError');
-                        if (!isValidUrl(elements.newsUrlInput.value)) {
-                            urlError.classList.remove('hidden');
-                            elements.newsUrlInput.classList.add('border-red-500');
-                        } else {
-                            urlError.classList.add('hidden');
-                            elements.newsUrlInput.classList.remove('border-red-500');
-                        }
-                    } catch (e) {
-                        console.error('Error validating URL:', e);
-                    }
-                });
-
-                // Real-time validation for full description
-                elements.newsFullDescriptionInput.addEventListener('input', () => {
-                    try {
-                        const descriptionError = document.getElementById('newsFullDescriptionError');
-                        if (!elements.newsFullDescriptionInput.value.trim()) {
-                            descriptionError.classList.remove('hidden');
-                            elements.newsFullDescriptionInput.classList.add('border-red-500');
-                        } else {
-                            descriptionError.classList.add('hidden');
-                            elements.newsFullDescriptionInput.classList.remove('border-red-500');
-                        }
-                    } catch (e) {
-                        console.error('Error validating description:', e);
-                    }
-                });
-
-                // Event listeners for filter and search
-                elements.tagFilter.addEventListener('change', () => {
-                    try {
-                        renderNews();
-                    } catch (e) {
-                        console.error('Error filtering news:', e);
-                        showMessage('Failed to filter articles.', 'error');
-                    }
-                });
-
-                elements.searchInput.addEventListener('input', () => {
-                    try {
-                        renderNews();
-                    } catch (e) {
-                        console.error('Error searching news:', e);
-                        showMessage('Failed to search articles.', 'error');
-                    }
-                });
-
-                // Event listener for the modal to show article details
-                elements.newsGrid.addEventListener('click', (e) => {
-                    try {
-                        if (e.target.classList.contains('read-more-btn')) {
-                            const title = e.target.getAttribute('data-title');
-                            const fullDescription = decodeURIComponent(e.target.getAttribute('data-full-description'));
-                            elements.modalTitle.textContent = title;
-                            elements.modalContent.innerHTML = fullDescription;
-                            elements.modal.classList.remove('hidden');
-                        }
-                    } catch (e) {
-                        console.error('Error opening modal:', e);
-                        showMessage('Failed to open article details.', 'error');
-                    }
-                });
-
-                // Event listener to close the modal
-                elements.closeModalBtn.addEventListener('click', () => {
-                    try {
-                        elements.modal.classList.add('hidden');
-                    } catch (e) {
-                        console.error('Error closing modal:', e);
-                        showMessage('Failed to close modal.', 'error');
-                    }
-                });
-
-                // Initial render when the page loads
-                document.addEventListener('DOMContentLoaded', () => {
-                    try {
-                        // Populate the tag dropdowns
-                        elements.tagFilter.innerHTML = '<option value="All">All</option>' + availableTags.map(tag => `<option value="${tag}">${tag}</option>`).join('');
-                        elements.newsTagsContainer.innerHTML = availableTags.map(tag => `
-                            <label class="flex items-center text-gray-300">
-                                <input type="checkbox" value="${tag}" class="tag-checkbox bg-gray-700 border-gray-600 rounded focus:ring-2 focus:ring-blue-500">
-                                ${tag}
-                            </label>
-                        `).join('');
-
-                        renderNews();
-                    } catch (e) {
-                        console.error('Error during initial render:', e);
-                        showMessage('Failed to initialize page.', 'error');
-                    }
-                });
-            } catch (e) {
-                console.error('Script initialization error:', e);
-                document.getElementById('message-box').textContent = 'An error occurred while loading the page.';
-                document.getElementById('message-box').classList.remove('hidden', 'bg-green-500');
-                document.getElementById('message-box').classList.add('bg-red-500');
-            }
         })();
     </script>
 </body>
 </html>
+
