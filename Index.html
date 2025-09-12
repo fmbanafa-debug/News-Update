@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Pulse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .news-card {
+            min-height: 200px;
+        }
+        .message-box {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-200">
+
+    <!-- Message Box for Alerts -->
+    <div id="message-box" class="message-box p-4 bg-green-500 text-white rounded-lg shadow-xl hidden transition-all duration-300 ease-in-out">
+        Article added successfully!
+    </div>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <!-- Header Section -->
+        <header class="text-center mb-12">
+            <h1 class="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600 mb-2">The Daily Brief</h1>
+            <p class="text-lg md:text-xl text-gray-400">Your curated news, on your own terms.</p>
+        </header>
+
+        <!-- Filter and Add Section -->
+        <div class="mb-12 space-y-6 md:space-y-0 md:flex md:items-center md:space-x-4">
+            <div class="flex-grow">
+                <label for="tagFilter" class="block text-sm font-medium text-gray-400 mb-1">Filter by Tag</label>
+                <select id="tagFilter" class="w-full px-4 py-2 bg-gray-800 text-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+            </div>
+            <div class="relative flex-grow">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <input type="text" id="searchInput" placeholder="Search by keyword..." class="w-full pl-10 pr-4 py-2 bg-gray-800 text-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            </div>
+            <button id="showAddFormBtn" class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
+                Add New Article
+            </button>
+        </div>
+
+        <!-- Add News Form (Initially hidden) -->
+        <div id="addFormContainer" class="hidden bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl mb-12">
+            <h2 class="text-2xl font-bold mb-4">Add a New Article</h2>
+            <form id="addNewsForm" class="space-y-4">
+                <div>
+                    <label for="newsTitle" class="block text-sm font-medium text-gray-300">Title</label>
+                    <input type="text" id="newsTitle" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="newsSummary" class="block text-sm font-medium text-gray-300">Summary (Short)</label>
+                    <textarea id="newsSummary" rows="2" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div>
+                    <label for="newsFullDescription" class="block text-sm font-medium text-gray-300">Full Description (Extensive, in points)</label>
+                    <textarea id="newsFullDescription" rows="5" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div>
+                    <label for="newsTag" class="block text-sm font-medium text-gray-300">Tag</label>
+                    <select id="newsTag" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <button type="submit" class="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                    Save Article
+                </button>
+            </form>
+        </div>
+        
+        <!-- News Grid -->
+        <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- News articles will be dynamically injected here by JavaScript -->
+        </div>
+
+        <!-- No News Message -->
+        <div id="noNewsMessage" class="hidden text-center mt-16 text-gray-500 text-lg">
+            No articles found. Add some news using the button above!
+        </div>
+    </div>
+
+    <!-- Modal for Expanded View -->
+    <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 rounded-2xl p-8 max-w-2xl w-full relative shadow-xl">
+            <button id="closeModal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h3 id="modalTitle" class="text-2xl font-bold text-white mb-4"></h3>
+            <div id="modalContent" class="text-gray-300 overflow-y-auto max-h-[70vh]"></div>
+        </div>
+    </div>
+
+    <script>
+        // Use a self-executing anonymous function to avoid polluting the global scope
+        (function() {
+            const newsGrid = document.getElementById('newsGrid');
+            const showAddFormBtn = document.getElementById('showAddFormBtn');
+            const addFormContainer = document.getElementById('addFormContainer');
+            const addNewsForm = document.getElementById('addNewsForm');
+            const newsTitleInput = document.getElementById('newsTitle');
+            const newsSummaryInput = document.getElementById('newsSummary');
+            const newsFullDescriptionInput = document.getElementById('newsFullDescription');
+            const noNewsMessage = document.getElementById('noNewsMessage');
+            const messageBox = document.getElementById('message-box');
+            const modal = document.getElementById('modal');
+            const closeModalBtn = document.getElementById('closeModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            const tagFilter = document.getElementById('tagFilter');
+            const newsTagInput = document.getElementById('newsTag');
+            const searchInput = document.getElementById('searchInput');
+
+            const availableTags = ["AI", "Entertainment", "Finance", "Industrial", "Pharma", "Real Estate", "Retail", "Technological Services", "Telecommunications"].sort();
+
+            // Initial news articles to populate the page on first load
+            const initialNews = [
+                {
+                    title: "ADQ sells its 45% stake in Alpha Dhabi",
+                    url: "",
+                    summary: "Abu Dhabi's ADQ, a major investment holding company, has sold its entire 45% stake in Alpha Dhabi Holding to a private investment firm, with the deal's value based on Alpha Dhabi's market cap.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>The Parties:</strong> ADQ, one of Abu Dhabi's largest sovereign wealth funds, sold its stake to a private investment firm.</li>
+                            <li><strong>Transaction Details:</strong> The sale involved ADQ's full 45% shareholding in Alpha Dhabi Holding, an Abu Dhabi-based conglomerate.</li>
+                            <li><strong>Valuation:</strong> The value of the transaction was not publicly disclosed but was determined based on Alpha Dhabi's market capitalization.</li>
+                            <li><strong>Strategic Impact:</strong> This sale allows ADQ to rebalance its portfolio and focus on other strategic investments, while the private firm gains a significant stake in a major player in the region.</li>
+                        </ul>
+                    `,
+                    date: "September 10, 2025",
+                    tag: 'Finance'
+                },
+                {
+                    title: "Abu Dhabi’s Yas Island breaks record with 34,000 visitors at New Year’s Eve celebrations",
+                    url: "",
+                    summary: "Yas Island in Abu Dhabi set a new record for its New Year's Eve celebrations, attracting over 34,000 attendees to the fireworks and drone show event.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Record-Breaking Attendance:</strong> The event drew an unprecedented crowd of more than 34,000 people, marking a new attendance record for the popular destination.</li>
+                            <li><strong>Spectacle:</strong> Attendees enjoyed a spectacular fireworks display and a synchronized drone show, contributing to a vibrant and memorable celebration.</li>
+                            <li><strong>Economic Impact:</strong> The high turnout highlights Yas Island's growing appeal as a major entertainment and tourism hub in the region.</li>
+                        </ul>
+                    `,
+                    date: "September 9, 2025",
+                    tag: 'Entertainment'
+                },
+                {
+                    title: "Al Futtaim Group acquires 25% stake in Chalhoub Group",
+                    url: "",
+                    summary: "The UAE's Al Futtaim Group has purchased a 25% ownership stake in the Dubai-based luxury retail giant, Chalhoub Group, for a sum exceeding $500 million.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Acquisition:</strong> Al Futtaim Group, a diversified conglomerate, has acquired a significant minority stake in the Chalhoub Group.</li>
+                            <li><strong>Valuation:</strong> The deal, which strengthens Al Futtaim's position in the luxury goods market, was valued at over $500 million.</li>
+                            <li><strong>Synergy:</strong> This partnership is expected to create synergies and drive growth for both companies within the luxury and retail sectors.</li>
+                            <li><strong>Market Position:</strong> Chalhoub Group is a well-established leader in luxury retail distribution across the Middle East.</li>
+                        </ul>
+                    `,
+                    date: "September 8, 2025",
+                    tag: 'Retail'
+                },
+                {
+                    title: "Dubai’s largest mall opens a new virtual store in the Metaverse",
+                    url: "",
+                    summary: "Cityland Mall in Dubai is set to launch its own virtual store within the Metaverse, offering a new shopping experience for customers.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Virtual Expansion:</strong> Cityland Mall is entering the digital realm by creating a virtual presence in the Metaverse.</li>
+                            <li><strong>New Experience:</strong> This initiative provides a new way for consumers to shop and interact with the mall's offerings from anywhere in the world.</li>
+                            <li><strong>Technology Integration:</strong> The move showcases the increasing integration of retail with virtual reality and digital platforms.</li>
+                            <li><strong>Strategic Vision:</strong> This step aligns with Dubai's push for digital innovation and establishing itself as a hub for future-forward technologies.</li>
+                        </ul>
+                    `,
+                    date: "September 7, 2025",
+                    tag: 'Technological Services'
+                },
+                {
+                    title: "DEWA announces a record AED 8.7 billion in profit",
+                    url: "",
+                    summary: "The Dubai Electricity and Water Authority (DEWA) has reported a record-breaking profit of AED 8.7 billion for the first nine months of the year, driven by higher demand and operational efficiency.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Financial Performance:</strong> DEWA's profit reached an unprecedented AED 8.7 billion (approximately $2.37 billion) for the first nine months of the financial year.</li>
+                            <li><strong>Key Drivers:</strong> This strong performance is attributed to a surge in electricity and water demand as well as improved operational efficiency across its services.</li>
+                            <li><strong>Market Position:</strong> As a major utility provider in Dubai, this record profit underscores the company's robust financial health and the city's economic growth.</li>
+                        </ul>
+                    `,
+                    date: "September 6, 2025",
+                    tag: 'Finance'
+                },
+                {
+                    title: "Emaar Properties records $1.5 billion in profit for the first nine months of 2023",
+                    url: "",
+                    summary: "Emaar Properties, the developer of the Burj Khalifa, has announced a net profit of $1.5 billion for the first nine months of 2023, reflecting strong sales across its portfolio.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Profit Milestone:</strong> The company reported a substantial net profit of $1.5 billion, a significant indicator of its financial success.</li>
+                            <li><strong>Performance Drivers:</strong> The profit was fueled by robust real estate sales and the company's successful management of its diverse portfolio.</li>
+                            <li><strong>Market Confidence:</strong> Emaar's performance reflects strong investor confidence and a booming real estate market in Dubai.</li>
+                        </ul>
+                    `,
+                    date: "September 5, 2025",
+                    tag: 'Real Estate'
+                },
+                {
+                    title: "ADNOC finalizes partnership deal with Eni and OMV",
+                    url: "",
+                    summary: "ADNOC has completed a strategic partnership agreement with Italian oil giant Eni and Austria's OMV, focusing on the joint development of projects in the energy sector.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Strategic Alliance:</strong> ADNOC, one of the world's largest energy companies, has formalized a new partnership with two leading European energy firms, Eni and OMV.</li>
+                            <li><strong>Collaboration:</strong> The agreement aims to pool resources and expertise to collaborate on upstream, midstream, and downstream projects.</li>
+                            <li><strong>Global Reach:</strong> This deal enhances ADNOC's global footprint and strengthens its position in key international markets.</li>
+                        </ul>
+                    `,
+                    date: "September 4, 2025",
+                    tag: 'Industrial'
+                },
+                {
+                    title: "SIDARA ACQUIRES UK'S WOOD GROUP IN $292 MILLION DEAL",
+                    url: "https://www.instagram.com/smashibusiness/",
+                    summary: "Sidara, the UAE-based engineering firm, has acquired the UK's Wood Group for £216 million ($292 million), with a $450 million capital injection and assumption of $1.6 billion in debt.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>The Acquirer:</strong> Sidara is a prominent UAE-based engineering firm, expanding its global footprint.</li>
+                            <li><strong>The Target:</strong> Wood Group is a UK-based company specializing in engineering and consulting services.</li>
+                            <li><strong>Deal Specifics:</strong> The acquisition is valued at £216 million ($292 million), including a significant capital injection and the assumption of $1.6 billion in debt.</li>
+                            <li><strong>Contingency:</strong> The deal is dependent on Wood Group publishing its delayed financial results by October 31, 2025.</li>
+                            <li><strong>Market Impact:</strong> This move signifies a major consolidation in the global engineering sector and a strategic expansion for Sidara.</li>
+                        </ul>
+                    `,
+                    date: "September 3, 2025",
+                    tag: 'Industrial'
+                }
+            ];
+            
+            // Show a temporary message to the user
+            function showMessage(message, type = 'success') {
+                messageBox.textContent = message;
+                messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500');
+                if (type === 'success') {
+                    messageBox.classList.add('bg-green-500');
+                } else {
+                    messageBox.classList.add('bg-red-500');
+                }
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 3000);
+            }
+
+            // Function to save news to localStorage
+            function saveNews(news) {
+                localStorage.setItem('newsData', JSON.stringify(news));
+            }
+
+            // Function to load news from localStorage
+            function loadNews() {
+                const newsString = localStorage.getItem('newsData');
+                if (newsString) {
+                    return JSON.parse(newsString);
+                } else {
+                    // Save initial news to local storage on first load
+                    saveNews(initialNews);
+                    return initialNews;
+                }
+            }
+
+            // Function to render news articles
+            function renderNews() {
+                const selectedTag = tagFilter.value;
+                const filterText = searchInput.value.toLowerCase();
+                const newsArticles = loadNews();
+                
+                let filteredNews = newsArticles;
+
+                if (selectedTag !== 'All') {
+                    filteredNews = newsArticles.filter(article => article.tag === selectedTag);
+                }
+
+                if (filterText) {
+                    filteredNews = filteredNews.filter(article =>
+                        article.title.toLowerCase().includes(filterText) ||
+                        article.summary.toLowerCase().includes(filterText) ||
+                        (article.fullDescription && article.fullDescription.toLowerCase().includes(filterText))
+                    );
+                }
+                
+                newsGrid.innerHTML = '';
+                if (filteredNews.length === 0) {
+                    noNewsMessage.classList.remove('hidden');
+                } else {
+                    noNewsMessage.classList.add('hidden');
+                    filteredNews.forEach(article => {
+                        const card = document.createElement('div');
+                        card.className = 'news-card bg-gray-800 p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between';
+                        
+                        // Card content
+                        const content = `
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">${article.title}</h3>
+                                <span class="text-xs px-2 py-1 bg-indigo-500 text-white rounded-full font-medium">${article.tag}</span>
+                                <p class="text-sm text-gray-400 my-4">${article.summary}</p>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between">
+                                <button class="read-more-btn text-blue-400 hover:text-blue-300 font-medium transition-colors" data-title="${article.title}" data-full-description="${encodeURIComponent(article.fullDescription || '')}">
+                                    Read more &rarr;
+                                </button>
+                                <span class="text-xs text-gray-500">${article.date}</span>
+                            </div>
+                        `;
+                        card.innerHTML = content;
+                        newsGrid.appendChild(card);
+                    });
+                }
+            }
+
+            // Event listener for adding a new article
+            addNewsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newArticle = {
+                    title: newsTitleInput.value,
+                    url: "", 
+                    summary: newsSummaryInput.value,
+                    fullDescription: newsFullDescriptionInput.value,
+                    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                    tag: newsTagInput.value
+                };
+
+                const newsArticles = loadNews();
+                newsArticles.unshift(newArticle); // Add to the beginning of the array
+                saveNews(newsArticles);
+                renderNews();
+                addNewsForm.reset();
+                addFormContainer.classList.add('hidden');
+                showMessage('Article added successfully!');
+            });
+
+            // Event listener for showing/hiding the add form
+            showAddFormBtn.addEventListener('click', () => {
+                addFormContainer.classList.toggle('hidden');
+                if (!addFormContainer.classList.contains('hidden')) {
+                    newsTitleInput.focus();
+                }
+            });
+
+            // Event listeners for filter and search
+            tagFilter.addEventListener('change', renderNews);
+            searchInput.addEventListener('input', renderNews);
+
+            // Event listener for the modal to show article details
+            newsGrid.addEventListener('click', (e) => {
+                if (e.target.classList.contains('read-more-btn')) {
+                    const title = e.target.getAttribute('data-title');
+                    const fullDescription = decodeURIComponent(e.target.getAttribute('data-full-description'));
+                    modalTitle.textContent = title;
+                    modalContent.innerHTML = fullDescription; // Use innerHTML to render points
+                    modal.classList.remove('hidden');
+                }
+            });
+
+            // Event listener to close the modal
+            closeModalBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
+
+            // Initial render when the page loads
+            document.addEventListener('DOMContentLoaded', () => {
+                // Populate the tag dropdowns
+                tagFilter.innerHTML = '<option value="All">All</option>' + availableTags.map(tag => `<option value="${tag}">${tag}</option>`).join('');
+                newsTagInput.innerHTML = availableTags.map(tag => `<option value="${tag}">${tag}</option>`).join('');
+
+                renderNews();
+            });
+
+        })();
+    </script>
+</body>
+</html>
