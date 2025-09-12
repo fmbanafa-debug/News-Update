@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Pulse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .news-card {
+            min-height: 200px;
+        }
+        .message-box {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+        }
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .char-counter {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            margin-top: 0.25rem;
+        }
+        .tag-checkbox {
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-200">
+
+    <!-- Message Box for Alerts -->
+    <div id="message-box" class="message-box p-4 bg-green-500 text-white rounded-lg shadow-xl hidden transition-all duration-300 ease-in-out">
+        Article added successfully!
+    </div>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <!-- Header Section -->
+        <header class="text-center mb-12">
+            <h1 class="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600 mb-2">The Daily Brief</h1>
+            <p class="text-lg md:text-xl text-gray-400">Your curated news, on your own terms.</p>
+        </header>
+
+        <!-- Filter and Add Section -->
+        <div class="mb-12 space-y-6 md:space-y-0 md:flex md:items-center md:space-x-4">
+            <div class="flex-grow">
+                <label for="tagFilter" class="block text-sm font-medium text-gray-400 mb-1">Filter by Tag</label>
+                <select id="tagFilter" class="w-full px-4 py-2 bg-gray-800 text-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+            </div>
+            <div class="relative flex-grow">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <input type="text" id="searchInput" placeholder="Search by keyword..." class="w-full pl-10 pr-4 py-2 bg-gray-800 text-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            </div>
+            <button id="showAddFormBtn" class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
+                Add New Article
+            </button>
+        </div>
+
+        <!-- Add News Form (Initially hidden) -->
+        <div id="addFormContainer" class="hidden bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl mb-12">
+            <h2 class="text-2xl font-bold mb-4">Add a New Article</h2>
+            <form id="addNewsForm" class="space-y-6" novalidate>
+                <div>
+                    <label for="newsTitle" class="block text-sm font-medium text-gray-300">Title <span class="text-red-500">*</span></label>
+                    <input type="text" id="newsTitle" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" aria-describedby="newsTitleError" maxlength="100">
+                    <p id="newsTitleError" class="error-message hidden">Title is required and must be 100 characters or less.</p>
+                </div>
+                <div>
+                    <label for="newsUrl" class="block text-sm font-medium text-gray-300">URL <span class="text-red-500">*</span></label>
+                    <input type="url" id="newsUrl" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" aria-describedby="newsUrlError">
+                    <p id="newsUrlError" class="error-message hidden">Please enter a valid URL.</p>
+                </div>
+                <div>
+                    <label for="newsSummary" class="block text-sm font-medium text-gray-300">Summary (Short, max 200 characters) <span class="text-red-500">*</span></label>
+                    <textarea id="newsSummary" rows="2" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" maxlength="200" aria-describedby="newsSummaryError newsSummaryCounter"></textarea>
+                    <p id="newsSummaryError" class="error-message hidden">Summary is required and must be 200 characters or less.</p>
+                    <p id="newsSummaryCounter" class="char-counter">0/200 characters</p>
+                </div>
+                <div>
+                    <label for="newsFullDescription" class="block text-sm font-medium text-gray-300">Full Description (Extensive, in points) <span class="text-red-500">*</span></label>
+                    <textarea id="newsFullDescription" rows="5" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" aria-describedby="newsFullDescriptionError"></textarea>
+                    <p id="newsFullDescriptionError" class="error-message hidden">Full description is required.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300">Tags (Select at least one) <span class="text-red-500">*</span></label>
+                    <div id="newsTagsContainer" class="mt-2 grid grid-cols-2 gap-2" aria-describedby="newsTagsError">
+                        <!-- Tags will be populated by JavaScript -->
+                    </div>
+                    <p id="newsTagsError" class="error-message hidden">Please select at least one tag.</p>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                        Add Article
+                    </button>
+                    <button type="button" id="cancelAddFormBtn" class="flex-1 px-6 py-3 bg-gray-600 text-white font-bold rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- News Grid -->
+        <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- News articles will be dynamically injected here by JavaScript -->
+        </div>
+
+        <!-- No News Message -->
+        <div id="noNewsMessage" class="hidden text-center mt-16 text-gray-500 text-lg">
+            No articles found. Add some news using the button above!
+        </div>
+    </div>
+
+    <!-- Modal for Expanded View -->
+    <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 rounded-2xl p-8 max-w-2xl w-full relative shadow-xl">
+            <button id="closeModal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h3 id="modalTitle" class="text-2xl font-bold text-white mb-4"></h3>
+            <div id="modalContent" class="text-gray-300 overflow-y-auto max-h-[70vh]"></div>
+        </div>
+    </div>
+
+    <script>
+        // Use a self-executing anonymous function to avoid polluting the global scope
+        (function() {
+            try {
+                // DOM element references
+                const elements = {
+                    newsGrid: document.getElementById('newsGrid'),
+                    showAddFormBtn: document.getElementById('showAddFormBtn'),
+                    addFormContainer: document.getElementById('addFormContainer'),
+                    addNewsForm: document.getElementById('addNewsForm'),
+                    newsTitleInput: document.getElementById('newsTitle'),
+                    newsUrlInput: document.getElementById('newsUrl'),
+                    newsSummaryInput: document.getElementById('newsSummary'),
+                    newsFullDescriptionInput: document.getElementById('newsFullDescription'),
+                    newsTagsContainer: document.getElementById('newsTagsContainer'),
+                    noNewsMessage: document.getElementById('noNewsMessage'),
+                    messageBox: document.getElementById('message-box'),
+                    modal: document.getElementById('modal'),
+                    closeModalBtn: document.getElementById('closeModal'),
+                    modalTitle: document.getElementById('modalTitle'),
+                    modalContent: document.getElementById('modalContent'),
+                    tagFilter: document.getElementById('tagFilter'),
+                    searchInput: document.getElementById('searchInput'),
+                    cancelAddFormBtn: document.getElementById('cancelAddFormBtn')
+                };
+
+                // Check for missing DOM elements
+                for (const [key, element] of Object.entries(elements)) {
+                    if (!element) {
+                        console.error(`DOM element ${key} not found`);
+                        return;
+                    }
+                }
+
+                const availableTags = ["AI", "Entertainment", "Finance", "Industrial", "Pharma", "Real Estate", "Retail", "Technological Services", "Telecommunications"].sort();
+
+                // Initial news articles with tags as arrays
+                const initialNews = [
+                    {
+                        title: "SIDARA ACQUIRES UK'S WOOD GROUP IN $292 MILLION DEAL",
+                        url: "https://www.instagram.com/smashibusiness/",
+                        summary: "Sidara, the UAE-based engineering firm, has acquired the UK's Wood Group for £216 million ($292 million), with a $450 million capital injection and assumption of $1.6 billion in debt.",
+                        fullDescription: `
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><strong>The Acquirer:</strong> Sidara is a prominent UAE-based engineering firm, expanding its global footprint.</li>
+                                <li><strong>The Target:</strong> Wood Group is a UK-based company specializing in engineering and consulting services.</li>
+                                <li><strong>Deal Specifics:</strong> The acquisition is valued at £216 million ($292 million), including a significant capital injection and the assumption of $1.6 billion in debt.</li>
+                                <li><strong>Contingency:</strong> The deal is dependent on Wood Group publishing its delayed financial results by October 31, 2025.</li>
+                                <li><strong>Market Impact:</strong> This move signifies a major consolidation in the global engineering sector and a strategic expansion for Sidara.</li>
+                            </ul>
+                        `,
+                        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                        tags: ['Industrial']
+                    },
+                    {
+                        title: "Tech Giants Announce Major AI Partnership",
+                        url: "https://www.example.com/ai-partnership",
+                        summary: "Two of the world's leading technology companies have entered into a groundbreaking partnership to accelerate the development of artificial intelligence.",
+                        fullDescription: `
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><strong>The Alliance:</strong> Two major tech companies, historically rivals, have joined forces to pool their resources and research in artificial intelligence.</li>
+                                <li><strong>Key Objective:</strong> The partnership's primary goal is to speed up the creation of more ethical and robust AI models.</li>
+                                <li><strong>Benefits:</strong> The collaboration is expected to reduce development time, share costs, and create a unified standard for AI safety and ethics.</li>
+                                <li><strong>Market Reaction:</strong> The announcement has been met with mixed reactions, with some praising the collaboration while others express concerns about market dominance.</li>
+                            </ul>
+                        `,
+                        date: "September 5, 2025",
+                        tags: ['AI', 'Technological Services']
+                    },
+                    {
+                        title: "Global Markets Rally on Positive Economic Outlook",
+                        url: "https://www.example.com/market-rally",
+                        summary: "Stock markets worldwide saw significant gains today following the release of optimistic economic data.",
+                        fullDescription: `
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><strong>Economic Data:</strong> Recent reports show stronger-than-expected job growth and a stable inflation rate, calming fears of an economic downturn.</li>
+                                <li><strong>Market Performance:</strong> All major stock indexes, including the S&P 500, Dow Jones, and NASDAQ, posted solid gains, with technology and consumer goods sectors leading the charge.</li>
+                                <li><strong>Analyst Insight:</strong> Financial analysts believe this data provides a strong signal of economic resilience and may encourage further investment.</li>
+                                <li><strong>Future Outlook:</strong> The positive trend is expected to continue in the short term, though some experts caution about potential headwinds from geopolitical tensions.</li>
+                            </ul>
+                        `,
+                        date: "September 4, 2025",
+                        tags: ['Finance']
+                    }
+                ];
+
+                // Show a temporary message to the user
+                function showMessage(message, type = 'success') {
+                    elements.messageBox.textContent = message;
+                    elements.messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500');
+                    elements.messageBox.classList.add(type === 'success' ? 'bg-green-500' : 'bg-red-500');
+                    setTimeout(() => {
+                        elements.messageBox.classList.add('hidden');
+                    }, 3000);
+                }
+
+                // Function to save news to localStorage
+                function saveNews(news) {
+                    try {
+                        localStorage.setItem('newsData', JSON.stringify(news));
+                    } catch (e) {
+                        console.error('Error saving to localStorage:', e);
+                        showMessage('Failed to save article.', 'error');
+                    }
+                }
+
+                // Function to load news from localStorage
+                function loadNews() {
+                    try {
+                        const newsString = localStorage.getItem('newsData');
+                        if (newsString) {
+                            const parsedNews = JSON.parse(newsString);
+                            // Ensure all articles have tags as array
+                            return parsedNews.map(article => ({
+                                ...article,
+                                tags: Array.isArray(article.tags) ? article.tags : [article.tag || 'Uncategorized']
+                            }));
+                        } else {
+                            saveNews(initialNews);
+                            return initialNews;
+                        }
+                    } catch (e) {
+                        console.error('Error loading from localStorage:', e);
+                        showMessage('Failed to load articles.', 'error');
+                        return initialNews;
+                    }
+                }
+
+                // Function to validate URL
+                function isValidUrl(url) {
+                    try {
+                        new URL(url);
+                        return true;
+                    } catch {
+                        return false;
+                    }
+                }
+
+                // Function to validate form inputs
+                function validateForm() {
+                    let isValid = true;
+
+                    // Title validation
+                    const titleError = document.getElementById('newsTitleError');
+                    if (!elements.newsTitleInput.value.trim() || elements.newsTitleInput.value.length > 100) {
+                        titleError.classList.remove('hidden');
+                        elements.newsTitleInput.classList.add('border-red-500');
+                        isValid = false;
+                    } else {
+                        titleError.classList.add('hidden');
+                        elements.newsTitleInput.classList.remove('border-red-500');
+                    }
+
+                    // URL validation
+                    const urlError = document.getElementById('newsUrlError');
+                    if (!isValidUrl(elements.newsUrlInput.value)) {
+                        urlError.classList.remove('hidden');
+                        elements.newsUrlInput.classList.add('border-red-500');
+                        isValid = false;
+                    } else {
+                        urlError.classList.add('hidden');
+                        elements.newsUrlInput.classList.remove('border-red-500');
+                    }
+
+                    // Summary validation
+                    const summaryError = document.getElementById('newsSummaryError');
+                    if (!elements.newsSummaryInput.value.trim() || elements.newsSummaryInput.value.length > 200) {
+                        summaryError.classList.remove('hidden');
+                        elements.newsSummaryInput.classList.add('border-red-500');
+                        isValid = false;
+                    } else {
+                        summaryError.classList.add('hidden');
+                        elements.newsSummaryInput.classList.remove('border-red-500');
+                    }
+
+                    // Full Description validation
+                    const descriptionError = document.getElementById('newsFullDescriptionError');
+                    if (!elements.newsFullDescriptionInput.value.trim()) {
+                        descriptionError.classList.remove('hidden');
+                        elements.newsFullDescriptionInput.classList.add('border-red-500');
+                        isValid = false;
+                    } else {
+                        descriptionError.classList.add('hidden');
+                        elements.newsFullDescriptionInput.classList.remove('border-red-500');
+                    }
+
+                    // Tags validation
+                    const tagsError = document.getElementById('newsTagsError');
+                    const selectedTags = Array.from(elements.newsTagsContainer.querySelectorAll('input[type="checkbox"]:checked'));
+                    if (selectedTags.length === 0) {
+                        tagsError.classList.remove('hidden');
+                        isValid = false;
+                    } else {
+                        tagsError.classList.add('hidden');
+                    }
+
+                    return isValid;
+                }
+
+                // Function to render news articles
+                function renderNews() {
+                    try {
+                        const selectedTag = elements.tagFilter.value;
+                        const filterText = elements.searchInput.value.toLowerCase();
+                        const newsArticles = loadNews();
+                        
+                        let filteredNews = newsArticles;
+
+                        if (selectedTag !== 'All') {
+                            filteredNews = newsArticles.filter(article => article.tags.includes(selectedTag));
+                        }
+
+                        if (filterText) {
+                            filteredNews = filteredNews.filter(article =>
+                                article.title.toLowerCase().includes(filterText) ||
+                                article.summary.toLowerCase().includes(filterText) ||
+                                (article.fullDescription && article.fullDescription.toLowerCase().includes(filterText))
+                            );
+                        }
+                        
+                        elements.newsGrid.innerHTML = '';
+                        if (filteredNews.length === 0) {
+                            elements.noNewsMessage.classList.remove('hidden');
+                        } else {
+                            elements.noNewsMessage.classList.add('hidden');
+                            filteredNews.forEach(article => {
+                                const card = document.createElement('div');
+                                card.className = 'news-card bg-gray-800 p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between';
+                                
+                                // Sanitize content to prevent XSS
+                                const content = `
+                                    <div>
+                                        <h3 class="text-xl font-bold text-white mb-2">${article.title.replace(/</g, '&lt;')}</h3>
+                                        <div class="flex flex-wrap gap-2 mb-4">
+                                            ${article.tags.map(tag => `<span class="text-xs px-2 py-1 bg-indigo-500 text-white rounded-full font-medium">${tag.replace(/</g, '&lt;')}</span>`).join('')}
+                                        </div>
+                                        <p class="text-sm text-gray-400">${article.summary.replace(/</g, '&lt;')}</p>
+                                    </div>
+                                    <div class="mt-4 flex items-center justify-between">
+                                        <button class="read-more-btn text-blue-400 hover:text-blue-300 font-medium transition-colors" data-title="${article.title.replace(/"/g, '&quot;')}" data-full-description="${encodeURIComponent(article.fullDescription || '')}">
+                                            Read more &rarr;
+                                        </button>
+                                        <span class="text-xs text-gray-500">${article.date}</span>
+                                    </div>
+                                `;
+                                card.innerHTML = content;
+                                elements.newsGrid.appendChild(card);
+                            });
+                        }
+                    } catch (e) {
+                        console.error('Error rendering news:', e);
+                        showMessage('Failed to render articles.', 'error');
+                    }
+                }
+
+                // Event listener for adding a new article
+                elements.addNewsForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    try {
+                        if (validateForm()) {
+                            const selectedTags = Array.from(elements.newsTagsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
+                            const newArticle = {
+                                title: elements.newsTitleInput.value.trim(),
+                                url: elements.newsUrlInput.value.trim(),
+                                summary: elements.newsSummaryInput.value.trim(),
+                                fullDescription: `
+                                    <ul class="list-disc list-inside space-y-2">
+                                        ${elements.newsFullDescriptionInput.value.trim().split('\n').map(line => `<li>${line.replace(/</g, '&lt;')}</li>`).join('')}
+                                    </ul>
+                                `,
+                                date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                                tags: selectedTags
+                            };
+
+                            const newsArticles = loadNews();
+                            newsArticles.unshift(newArticle);
+                            saveNews(newsArticles);
+                            renderNews();
+                            elements.addNewsForm.reset();
+                            elements.addFormContainer.classList.add('hidden');
+                            document.getElementById('newsSummaryCounter').textContent = '0/200 characters';
+                            showMessage('Article added successfully!');
+                        } else {
+                            showMessage('Please fix the errors in the form.', 'error');
+                        }
+                    } catch (e) {
+                        console.error('Error adding article:', e);
+                        showMessage('Failed to add article.', 'error');
+                    }
+                });
+
+                // Event listener for showing/hiding the add form
+                elements.showAddFormBtn.addEventListener('click', () => {
+                    try {
+                        elements.addFormContainer.classList.toggle('hidden');
+                        if (!elements.addFormContainer.classList.contains('hidden')) {
+                            elements.newsTitleInput.focus();
+                        }
+                    } catch (e) {
+                        console.error('Error toggling form:', e);
+                        showMessage('Failed to toggle form.', 'error');
+                    }
+                });
+
+                // Event listener for canceling the form
+                elements.cancelAddFormBtn.addEventListener('click', () => {
+                    try {
+                        elements.addNewsForm.reset();
+                        elements.addFormContainer.classList.add('hidden');
+                        document.getElementById('newsSummaryCounter').textContent = '0/200 characters';
+                        document.querySelectorAll('.error-message').forEach(el => el.classList.add('hidden'));
+                        document.querySelectorAll('input, textarea').forEach(el => el.classList.remove('border-red-500'));
+                    } catch (e) {
+                        console.error('Error canceling form:', e);
+                        showMessage('Failed to cancel form.', 'error');
+                    }
+                });
+
+                // Event listener for summary character counter
+                elements.newsSummaryInput.addEventListener('input', () => {
+                    try {
+                        const count = elements.newsSummaryInput.value.length;
+                        document.getElementById('newsSummaryCounter').textContent = `${count}/200 characters`;
+                        if (count > 200) {
+                            document.getElementById('newsSummaryError').classList.remove('hidden');
+                            elements.newsSummaryInput.classList.add('border-red-500');
+                        } else {
+                            document.getElementById('newsSummaryError').classList.add('hidden');
+                            elements.newsSummaryInput.classList.remove('border-red-500');
+                        }
+                    } catch (e) {
+                        console.error('Error updating summary counter:', e);
+                    }
+                });
+
+                // Real-time validation for title
+                elements.newsTitleInput.addEventListener('input', () => {
+                    try {
+                        const titleError = document.getElementById('newsTitleError');
+                        if (!elements.newsTitleInput.value.trim() || elements.newsTitleInput.value.length > 100) {
+                            titleError.classList.remove('hidden');
+                            elements.newsTitleInput.classList.add('border-red-500');
+                        } else {
+                            titleError.classList.add('hidden');
+                            elements.newsTitleInput.classList.remove('border-red-500');
+                        }
+                    } catch (e) {
+                        console.error('Error validating title:', e);
+                    }
+                });
+
+                // Real-time validation for URL
+                elements.newsUrlInput.addEventListener('input', () => {
+                    try {
+                        const urlError = document.getElementById('newsUrlError');
+                        if (!isValidUrl(elements.newsUrlInput.value)) {
+                            urlError.classList.remove('hidden');
+                            elements.newsUrlInput.classList.add('border-red-500');
+                        } else {
+                            urlError.classList.add('hidden');
+                            elements.newsUrlInput.classList.remove('border-red-500');
+                        }
+                    } catch (e) {
+                        console.error('Error validating URL:', e);
+                    }
+                });
+
+                // Real-time validation for full description
+                elements.newsFullDescriptionInput.addEventListener('input', () => {
+                    try {
+                        const descriptionError = document.getElementById('newsFullDescriptionError');
+                        if (!elements.newsFullDescriptionInput.value.trim()) {
+                            descriptionError.classList.remove('hidden');
+                            elements.newsFullDescriptionInput.classList.add('border-red-500');
+                        } else {
+                            descriptionError.classList.add('hidden');
+                            elements.newsFullDescriptionInput.classList.remove('border-red-500');
+                        }
+                    } catch (e) {
+                        console.error('Error validating description:', e);
+                    }
+                });
+
+                // Event listeners for filter and search
+                elements.tagFilter.addEventListener('change', () => {
+                    try {
+                        renderNews();
+                    } catch (e) {
+                        console.error('Error filtering news:', e);
+                        showMessage('Failed to filter articles.', 'error');
+                    }
+                });
+
+                elements.searchInput.addEventListener('input', () => {
+                    try {
+                        renderNews();
+                    } catch (e) {
+                        console.error('Error searching news:', e);
+                        showMessage('Failed to search articles.', 'error');
+                    }
+                });
+
+                // Event listener for the modal to show article details
+                elements.newsGrid.addEventListener('click', (e) => {
+                    try {
+                        if (e.target.classList.contains('read-more-btn')) {
+                            const title = e.target.getAttribute('data-title');
+                            const fullDescription = decodeURIComponent(e.target.getAttribute('data-full-description'));
+                            elements.modalTitle.textContent = title;
+                            elements.modalContent.innerHTML = fullDescription;
+                            elements.modal.classList.remove('hidden');
+                        }
+                    } catch (e) {
+                        console.error('Error opening modal:', e);
+                        showMessage('Failed to open article details.', 'error');
+                    }
+                });
+
+                // Event listener to close the modal
+                elements.closeModalBtn.addEventListener('click', () => {
+                    try {
+                        elements.modal.classList.add('hidden');
+                    } catch (e) {
+                        console.error('Error closing modal:', e);
+                        showMessage('Failed to close modal.', 'error');
+                    }
+                });
+
+                // Initial render when the page loads
+                document.addEventListener('DOMContentLoaded', () => {
+                    try {
+                        // Populate the tag dropdowns
+                        elements.tagFilter.innerHTML = '<option value="All">All</option>' + availableTags.map(tag => `<option value="${tag}">${tag}</option>`).join('');
+                        elements.newsTagsContainer.innerHTML = availableTags.map(tag => `
+                            <label class="flex items-center text-gray-300">
+                                <input type="checkbox" value="${tag}" class="tag-checkbox bg-gray-700 border-gray-600 rounded focus:ring-2 focus:ring-blue-500">
+                                ${tag}
+                            </label>
+                        `).join('');
+
+                        renderNews();
+                    } catch (e) {
+                        console.error('Error during initial render:', e);
+                        showMessage('Failed to initialize page.', 'error');
+                    }
+                });
+            } catch (e) {
+                console.error('Script initialization error:', e);
+                document.getElementById('message-box').textContent = 'An error occurred while loading the page.';
+                document.getElementById('message-box').classList.remove('hidden', 'bg-green-500');
+                document.getElementById('message-box').classList.add('bg-red-500');
+            }
+        })();
+    </script>
+</body>
+</html>
